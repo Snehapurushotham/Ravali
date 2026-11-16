@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="e81c474e-0386-49b1-9a3c-0baffa000ec1" >
+		<http:listener-connection host="localhost" port="8081" />
+	</http:listener-config>
+	<flow name="batchjobFlow" doc:id="dccd5722-4e32-4741-9a5b-946bf2a36122" >
+		<http:listener doc:name="Listener" doc:id="ce58efaf-02b3-41cf-af23-8f9f20c80ddf" config-ref="HTTP_Listener_config" path="/batchjob"/>
+		<logger level="INFO" doc:name="Logger" doc:id="1efe696d-6d1b-472d-b045-9edb208396fa" message="batchjobflow started"/>
+		<set-payload value='#[[1,2,3,4,5,"a",6]]' doc:name="Set Payload" doc:id="c1837bfc-1121-497b-aea1-c13a92fe6a4e" />
+		<batch:job jobName="batchjobBatch_Job" doc:id="ec0c0335-e2bf-4e0c-9e3d-b5dc908951ae" maxFailedRecords="7">
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="6c0e77a2-2429-497d-8a0e-821a62fe6ec4" >
+					<ee:transform doc:name="Transform Message" doc:id="4929e595-8611-4888-bccb-5f2175de018f" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="68659e61-43a4-4d6f-b245-804ef5c2562f" size="2">
+						<logger level="INFO" doc:name="Logger" doc:id="dbcd9f68-efdc-4064-8e7a-8e175378d72b" message="batch agg flow"/>
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="Logger" doc:id="6cdbea80-79c7-4fed-b39f-ff50e6df1bdd" message="on complete end"/>
+			</batch:on-complete>
+		</batch:job>
+		<flow-ref doc:name="Flow Reference" doc:id="467f3241-c909-4272-b1d7-58b903e9962a" name="floeref"/>
+	</flow>
+</mule>
